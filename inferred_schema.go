@@ -2,13 +2,14 @@ package jtdinfer
 
 import (
 	"fmt"
-	"math"
 	"reflect"
 	"time"
 
 	jtd "github.com/jsontypedef/json-typedef-go"
 )
 
+// SchemaType represents the type of schema element. It will map to the
+// available types for JTD.
 type SchemaType int8
 
 const (
@@ -26,11 +27,14 @@ const (
 	SchemaTypeNullable
 )
 
+// Properties represents all required and optional properties which is the same as
+// JSON objects.
 type Properties struct {
 	Required map[string]*InferredSchema
 	Optional map[string]*InferredSchema
 }
 
+// Discriminator represents discriminators for the schema.
 type Discriminator struct {
 	Discriminator string
 	Mapping       map[string]*InferredSchema
@@ -49,12 +53,9 @@ type InferredSchema struct {
 	Nullable      *InferredSchema
 }
 
+// NewInferredSchema will return a new, empty, `InferredSchema`.
 func NewInferredSchema() *InferredSchema {
 	return &InferredSchema{}
-}
-
-func NewInferredSchemaWithType(t SchemaType) *InferredSchema {
-	return &InferredSchema{SchemaType: t}
 }
 
 // Infer will infer the schema by trying to mimic the way it's implemented in
@@ -276,6 +277,7 @@ func (i *InferredSchema) Infer(value any) *InferredSchema {
 	panic(fmt.Sprintf("%T: %T (%v)", i.SchemaType, value, value))
 }
 
+// IntoSchema will convert an `InferredSchema` to a final `Schema`.
 func (i *InferredSchema) IntoSchema() Schema {
 	switch i.SchemaType {
 	case SchemaTypeUnknown, SchemaTypeAny:
@@ -285,11 +287,7 @@ func (i *InferredSchema) IntoSchema() Schema {
 		return Schema{Type: jtd.TypeBoolean}
 	case SchemaTypeNumber:
 		return Schema{
-			Type: i.Number.IntoType(minMax{
-				typ: jtd.TypeUint8,
-				min: 0,
-				max: math.MaxUint8,
-			}),
+			Type: i.Number.IntoType(NumTypeUint8),
 		}
 	case SchemaTypeString:
 		return Schema{Type: jtd.TypeString}
