@@ -12,11 +12,12 @@ type Hints struct {
 	Discriminator  HintSet
 }
 
+// WithoutHints is a shorthand to return empty hints.
 func WithoutHints() Hints {
 	return Hints{}
 }
 
-// SubHint will return the sub hints for all hint sets for the passed key.
+// SubHints will return the sub hints for all hint sets for the passed key.
 func (h Hints) SubHints(key string) Hints {
 	return Hints{
 		DefaultNumType: h.DefaultNumType,
@@ -60,7 +61,7 @@ func (h HintSet) Add(v []string) HintSet {
 	return h
 }
 
-// SubHint will filter all the current sets and keep those who's first element
+// SubHints will filter all the current sets and keep those who's first element
 // matches the passed key or wildcard.
 func (h HintSet) SubHints(key string) HintSet {
 	filteredValues := [][]string{}

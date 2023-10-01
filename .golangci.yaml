@@ -1,0 +1,100 @@
+---
+run:
+  deadline: 1m
+  issues-exit-code: 1
+  tests: true
+
+output:
+  format: colored-line-number
+  print-issued-lines: false
+
+linters-settings:
+  misspell:
+    locale: US
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  exclude-rules:
+    - linters: revive
+      text: "^package-comments:"
+
+linters:
+  disable-all: true
+  enable:
+    - asasalint
+    - asciicheck
+    - bidichk
+    - containedctx
+    - contextcheck
+    - decorder
+    - dupl
+    - dupword
+    - durationcheck
+    - errcheck
+    - errchkjson
+    - errname
+    - errorlint
+    - exhaustive
+    - exportloopref
+    - forbidigo
+    - forcetypeassert
+    - gochecknoglobals
+    - gochecknoinits
+    - goconst
+    - gocritic
+    - godot
+    - godox
+    - goerr113
+    - gofmt
+    - gofumpt
+    - goimports
+    - gomnd
+    - gomoddirectives
+    - gomodguard
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - gosmopolitan
+    - govet
+    - grouper
+    - importas
+    - ineffassign
+    - interfacebloat
+    - ireturn
+    - lll
+    - loggercheck
+    - makezero
+    - mirror
+    - misspell
+    - musttag
+    - nakedret
+    - nilerr
+    - nilnil
+    - noctx
+    - nolintlint
+    - nonamedreturns
+    - nosprintfhostport
+    - prealloc
+    - predeclared
+    - promlinter
+    - reassign
+    - revive
+    - rowserrcheck
+    - sqlclosecheck
+    - staticcheck
+    - tagalign
+    - tagliatelle
+    - tenv
+    - testableexamples
+    - thelper
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - usestdlibvars
+    - wastedassign
+    - whitespace
+    - wrapcheck
+    - wsl

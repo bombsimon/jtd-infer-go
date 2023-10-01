@@ -3,11 +3,12 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/bombsimon/jtd-infer-go.svg)](https://pkg.go.dev/github.com/bombsimon/jtd-infer-go)
 [![Build and test](https://github.com/bombsimon/jtd-infer-go/actions/workflows/go.yaml/badge.svg)](https://github.com/bombsimon/jtd-infer-go/actions/workflows/go.yaml)
 
-This is a port of [`json-typedef-infer`][jtd-infer] Go. The reason for porting
-this is that I was in need of JTD inference from code and not as a CLI tool.
+This is a port of [`json-typedef-infer`][jtd-infer] for Go. The reason for
+porting this is that I was in need of JTD inference from code and not as a CLI
+tool.
 
 For more information about JSON Typedef and its RFC and how to use different
-kind of hints see [`json-typedef-infer`][jtd-infer]
+kind of hints see [`json-typedef-infer`][jtd-infer].
 
 ## Usage
 

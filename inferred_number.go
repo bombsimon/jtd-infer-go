@@ -10,6 +10,7 @@ import (
 // JTD.
 type NumType uint8
 
+// Available number types.
 const (
 	NumTypeUint8 NumType = iota
 	NumTypeInt8
@@ -97,7 +98,7 @@ func (i *InferredNumber) Infer(n float64) *InferredNumber {
 	}
 }
 
-// InfoType will convert an `InferredNumber` to a `jtd.Type`.
+// IntoType will convert an `InferredNumber` to a `jtd.Type`.
 func (i *InferredNumber) IntoType(defaultType NumType) jtd.Type {
 	if i.ContainedBy(defaultType) {
 		return defaultType.IntoType()

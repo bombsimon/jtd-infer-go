@@ -13,6 +13,7 @@ import (
 // available types for JTD.
 type SchemaType int8
 
+// Available schema types.
 const (
 	SchemaTypeUnknown SchemaType = iota
 	SchemaTypeAny

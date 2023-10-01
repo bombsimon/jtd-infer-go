@@ -11,7 +11,7 @@ type Inferrer struct {
 	Hints     Hints
 }
 
-// NewInferred will create a new inferrer with a default `InferredSchema`.
+// NewInferrer will create a new inferrer with a default `InferredSchema`.
 func NewInferrer(hints Hints) *Inferrer {
 	return &Inferrer{
 		Inference: NewInferredSchema(),
