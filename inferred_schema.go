@@ -3,6 +3,7 @@ package jtdinfer
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 	"time"
 
 	jtd "github.com/jsontypedef/json-typedef-go"
@@ -63,7 +64,7 @@ func NewInferredSchema() *InferredSchema {
 // https://github.com/jsontypedef/json-typedef-infer/blob/master/src/inferred_schema.rs.
 // Since we don't have enums of this kind in Go we're using a struct with
 // pointers to a schema instead of wrapping the enums.
-func (i *InferredSchema) Infer(value any) *InferredSchema {
+func (i *InferredSchema) Infer(value any, hints Hints) *InferredSchema {
 	if value == nil {
 		return &InferredSchema{
 			SchemaType: SchemaTypeNullable,
@@ -92,7 +93,13 @@ func (i *InferredSchema) Infer(value any) *InferredSchema {
 	}
 
 	if v, ok := value.(string); ok && i.SchemaType == SchemaTypeUnknown {
-		// TODO: Enums
+		if hints.IsEnumActive() {
+			return &InferredSchema{
+				SchemaType: SchemaTypeEnum,
+				Enum:       map[string]struct{}{v: {}},
+			}
+		}
+
 		if _, err := time.Parse(time.RFC3339, v); err == nil {
 			return &InferredSchema{SchemaType: SchemaTypeTimestmap}
 		}
@@ -105,7 +112,7 @@ func (i *InferredSchema) Infer(value any) *InferredSchema {
 
 		subInfer := &InferredSchema{}
 		for i := 0; i < s.Len(); i++ {
-			subInfer = subInfer.Infer(s.Index(i).Interface())
+			subInfer = subInfer.Infer(s.Index(i).Interface(), hints.SubHints(strconv.Itoa(i)))
 		}
 
 		return &InferredSchema{
@@ -115,11 +122,37 @@ func (i *InferredSchema) Infer(value any) *InferredSchema {
 	}
 
 	if m, ok := value.(map[string]any); ok && i.SchemaType == SchemaTypeUnknown {
-		// TODO: Hints
-		// TODO: Discriminator
+		if hints.IsValuesActive() {
+			subInfer := NewInferredSchema()
+			for k, v := range m {
+				subInfer = subInfer.Infer(v, hints.SubHints(k))
+			}
+
+			return &InferredSchema{
+				SchemaType: SchemaTypeValues,
+				Values:     subInfer,
+			}
+		}
+
+		if discriminator, ok := hints.PeekActiveDiscriminator(); ok {
+			if mappingKey, ok := m[discriminator].(string); ok {
+				inferRest := NewInferredSchema().Infer(m, hints)
+
+				return &InferredSchema{
+					SchemaType: SchemaTypeDiscriminator,
+					Discriminator: Discriminator{
+						Discriminator: discriminator,
+						Mapping: map[string]*InferredSchema{
+							mappingKey: inferRest,
+						},
+					},
+				}
+			}
+		}
+
 		properties := make(map[string]*InferredSchema, 0)
 		for k, v := range m {
-			properties[k] = NewInferredSchema().Infer(v)
+			properties[k] = NewInferredSchema().Infer(v, hints.SubHints(k))
 		}
 
 		return &InferredSchema{
@@ -175,6 +208,7 @@ func (i *InferredSchema) Infer(value any) *InferredSchema {
 
 	if v, ok := value.(string); ok && i.SchemaType == SchemaTypeEnum {
 		i.Enum[v] = struct{}{}
+		return i
 	}
 
 	if i.SchemaType == SchemaTypeEnum {
@@ -182,12 +216,11 @@ func (i *InferredSchema) Infer(value any) *InferredSchema {
 	}
 
 	if i.SchemaType == SchemaTypeArray && reflect.TypeOf(value).Kind() == reflect.Slice {
-		// TODO: Hints
 		s := reflect.ValueOf(value)
 
 		subInfer := i.Array
 		for i := 0; i < s.Len(); i++ {
-			subInfer = subInfer.Infer(s.Index(i).Interface())
+			subInfer = subInfer.Infer(s.Index(i).Interface(), hints.SubHints(strconv.Itoa(i)))
 		}
 
 		return &InferredSchema{
@@ -223,13 +256,13 @@ func (i *InferredSchema) Infer(value any) *InferredSchema {
 
 		for k, v := range m {
 			if subInfer, ok := i.Properties.Required[k]; ok {
-				i.Properties.Required[k] = subInfer.Infer(v)
+				i.Properties.Required[k] = subInfer.Infer(v, hints.SubHints(k))
 			} else if subInfer, ok := i.Properties.Optional[k]; ok {
 				i.Properties.Optional = ensureMap(i.Properties.Optional)
-				i.Properties.Optional[k] = subInfer.Infer(v)
+				i.Properties.Optional[k] = subInfer.Infer(v, hints.SubHints(k))
 			} else {
 				i.Properties.Optional = ensureMap(i.Properties.Optional)
-				i.Properties.Optional[k] = NewInferredSchema().Infer(v)
+				i.Properties.Optional[k] = NewInferredSchema().Infer(v, hints.SubHints(k))
 			}
 		}
 
@@ -241,10 +274,9 @@ func (i *InferredSchema) Infer(value any) *InferredSchema {
 	}
 
 	if m, ok := value.(map[string]any); ok && i.SchemaType == SchemaTypeValues {
-		// TODO: Hints
 		subInfer := i.Values
-		for _, v := range m {
-			subInfer = NewInferredSchema().Infer(v)
+		for k, v := range m {
+			subInfer = NewInferredSchema().Infer(v, hints.SubHints(k))
 		}
 
 		return &InferredSchema{
@@ -267,7 +299,7 @@ func (i *InferredSchema) Infer(value any) *InferredSchema {
 			i.Discriminator.Mapping[mappingKey] = NewInferredSchema()
 		}
 
-		i.Discriminator.Mapping[mappingKey] = i.Discriminator.Mapping[mappingKey].Infer(m)
+		i.Discriminator.Mapping[mappingKey] = i.Discriminator.Mapping[mappingKey].Infer(m, hints)
 	}
 
 	if i.SchemaType == SchemaTypeDiscriminator {
@@ -333,8 +365,15 @@ func (i *InferredSchema) IntoSchema() Schema {
 		values := i.Values.IntoSchema()
 		return Schema{Values: &values}
 	case SchemaTypeDiscriminator:
-		// TODO: Add support for discriminator
+		mappings := map[string]Schema{}
+		for k, v := range i.Discriminator.Mapping {
+			mappings[k] = v.IntoSchema()
+		}
 
+		return Schema{
+			Discriminator: i.Discriminator.Discriminator,
+			Mapping:       mappings,
+		}
 	case SchemaTypeNullable:
 		schema := i.Nullable.IntoSchema()
 		schema.Nullable = true

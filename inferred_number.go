@@ -42,7 +42,7 @@ func (n NumType) AsRange() (float64, float64) {
 	case NumTypeInt32:
 		return math.MinInt32, math.MaxInt32
 	case NumTypeFloat32, NumTypeFloat64:
-		return math.MinInt64, math.MaxFloat64
+		return -math.MaxFloat64, math.MaxFloat64
 	}
 
 	return 0, 0

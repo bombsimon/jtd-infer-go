@@ -4,20 +4,22 @@ package jtdinfer
 // hints used when inferring.
 type Inferrer struct {
 	Inference *InferredSchema
-	// TODO: Add hints
+	Hints     Hints
 }
 
 // NewInferred will create a new inferrer with a default `InferredSchema`.
-func NewInferrer() *Inferrer {
+func NewInferrer(hints Hints) *Inferrer {
 	return &Inferrer{
 		Inference: NewInferredSchema(),
+		Hints:     hints,
 	}
 }
 
 // Infer will infer the schema.
 func (i *Inferrer) Infer(value any) *Inferrer {
 	return &Inferrer{
-		Inference: i.Inference.Infer(value),
+		Inference: i.Inference.Infer(value, i.Hints),
+		Hints:     i.Hints,
 	}
 }
 
