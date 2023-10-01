@@ -72,3 +72,46 @@ func TestJTDInferrerWithHints(t *testing.T) {
 
 	assert.EqualValues(t, expectedSchema, gotSchema)
 }
+
+func TestJTDInferWithDiscriminatorHints(t *testing.T) {
+	hints := Hints{
+		Discriminator: HintSet{
+			Values: [][]string{
+				{"-", "type"},
+			},
+		},
+	}
+
+	rows := []string{
+		`[{"type": "s", "value": "foo"},{"type": "n", "value": 3.14}]`,
+	}
+
+	inferrer := NewInferrer(hints)
+
+	for _, row := range rows {
+		rowAsJSON := make([]any, 0)
+		require.NoError(t, json.Unmarshal([]byte(row), &rowAsJSON))
+		inferrer = inferrer.Infer(rowAsJSON)
+	}
+
+	expectedSchema := Schema{
+		Elements: &Schema{
+			Discriminator: "type",
+			Mapping: map[string]Schema{
+				"s": {
+					Properties: map[string]Schema{
+						"value": {Type: jtd.TypeString},
+					},
+				},
+				"n": {
+					Properties: map[string]Schema{
+						"value": {Type: jtd.TypeFloat64},
+					},
+				},
+			},
+		},
+	}
+	gotSchema := inferrer.IntoSchema()
+
+	assert.EqualValues(t, expectedSchema, gotSchema)
+}

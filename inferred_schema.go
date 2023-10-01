@@ -136,14 +136,14 @@ func (i *InferredSchema) Infer(value any, hints Hints) *InferredSchema {
 
 		if discriminator, ok := hints.PeekActiveDiscriminator(); ok {
 			if mappingKey, ok := m[discriminator].(string); ok {
-				inferRest := NewInferredSchema().Infer(m, hints)
+				delete(m, discriminator)
 
 				return &InferredSchema{
 					SchemaType: SchemaTypeDiscriminator,
 					Discriminator: Discriminator{
 						Discriminator: discriminator,
 						Mapping: map[string]*InferredSchema{
-							mappingKey: inferRest,
+							mappingKey: NewInferredSchema().Infer(m, hints),
 						},
 					},
 				}
@@ -295,11 +295,15 @@ func (i *InferredSchema) Infer(value any, hints Hints) *InferredSchema {
 			return &InferredSchema{SchemaType: SchemaTypeAny}
 		}
 
+		delete(m, i.Discriminator.Discriminator)
+
 		if _, ok := i.Discriminator.Mapping[mappingKey]; !ok {
 			i.Discriminator.Mapping[mappingKey] = NewInferredSchema()
 		}
 
 		i.Discriminator.Mapping[mappingKey] = i.Discriminator.Mapping[mappingKey].Infer(m, hints)
+
+		return i
 	}
 
 	if i.SchemaType == SchemaTypeDiscriminator {
