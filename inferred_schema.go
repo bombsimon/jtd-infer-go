@@ -1,7 +1,6 @@
 package jtdinfer
 
 import (
-	"fmt"
 	"reflect"
 	"strconv"
 	"time"
@@ -311,7 +310,7 @@ func (i *InferredSchema) Infer(value any, hints Hints) *InferredSchema {
 		return &InferredSchema{SchemaType: SchemaTypeAny}
 	}
 
-	panic(fmt.Sprintf("%T: %T (%v)", i.SchemaType, value, value))
+	return &InferredSchema{}
 }
 
 // IntoSchema will convert an `InferredSchema` to a final `Schema`.
