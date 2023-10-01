@@ -13,7 +13,7 @@ func main() {
 	}
 	schema := jtdinfer.
 		InferStrings(rows, jtdinfer.WithoutHints()).
-		IntoSchema(jtdinfer.WithoutHints())
+		IntoSchema()
 
 	j, _ := json.MarshalIndent(schema, "", "  ")
 	print(string(j))

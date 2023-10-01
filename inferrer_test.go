@@ -20,7 +20,7 @@ func TestJTDInfer(t *testing.T) {
 			"hobbies": {Elements: &Schema{Type: jtd.TypeString}},
 		},
 	}
-	gotSchema := InferStrings(rows, Hints{}).IntoSchema(Hints{})
+	gotSchema := InferStrings(rows, WithoutHints()).IntoSchema()
 
 	assert.EqualValues(t, expectedSchema, gotSchema)
 }
@@ -48,10 +48,19 @@ func TestJTDInferrerWithEnumHints(t *testing.T) {
 			},
 		},
 	}
-	gotSchema := InferStrings(rows, hints).IntoSchema(hints)
+	gotSchema := InferStrings(rows, hints).IntoSchema()
 
 	// We check that we got the same elements in our enum first and then we
 	// delete it since the order is unreliable due to being a map.
+	require.ElementsMatch(
+		t,
+		expectedSchema.Properties["name"].Enum,
+		gotSchema.Properties["name"].Enum,
+	)
+
+	delete(expectedSchema.Properties, "name")
+	delete(gotSchema.Properties, "name")
+
 	require.ElementsMatch(
 		t,
 		expectedSchema.Properties["address"].Properties["city"].Enum,
@@ -81,7 +90,7 @@ func TestJTDInferWithValuesHints(t *testing.T) {
 			},
 		},
 	}
-	gotSchema := InferStrings(rows, hints).IntoSchema(hints)
+	gotSchema := InferStrings(rows, hints).IntoSchema()
 
 	assert.EqualValues(t, expectedSchema, gotSchema)
 }
@@ -112,7 +121,7 @@ func TestJTDInferWithDiscriminatorHints(t *testing.T) {
 			},
 		},
 	}
-	gotSchema := InferStrings(rows, hints).IntoSchema(hints)
+	gotSchema := InferStrings(rows, hints).IntoSchema()
 
 	assert.EqualValues(t, expectedSchema, gotSchema)
 }

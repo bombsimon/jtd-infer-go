@@ -28,8 +28,8 @@ func (i *Inferrer) Infer(value any) *Inferrer {
 }
 
 // IntoSchema will convert the `InferredSchema` into a final `Schema`.
-func (i *Inferrer) IntoSchema(hints Hints) Schema {
-	return i.Inference.IntoSchema(hints)
+func (i *Inferrer) IntoSchema() Schema {
+	return i.Inference.IntoSchema(i.Hints)
 }
 
 // InferStrings accepts a slice of strings and will convert them to either a

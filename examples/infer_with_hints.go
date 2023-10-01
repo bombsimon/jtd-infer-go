@@ -30,7 +30,7 @@ func main() {
 		Discriminator:  jtdinfer.NewHintSet().Add([]string{"discriminator", "-", "type"}),
 	}
 
-	schema := jtdinfer.InferStrings(rows, hints).IntoSchema(hints)
+	schema := jtdinfer.InferStrings(rows, hints).IntoSchema()
 	j, _ := json.MarshalIndent(schema, "", "  ")
 	print(string(j))
 }

@@ -10,7 +10,7 @@ func main() {
 	schema := jtdinfer.
 		NewInferrer(jtdinfer.WithoutHints()).
 		Infer("my-string").
-		IntoSchema(jtdinfer.WithoutHints())
+		IntoSchema()
 
 	j, _ := json.MarshalIndent(schema, "", "  ")
 	print(string(j))

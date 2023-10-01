@@ -17,7 +17,7 @@ See [examples] directory for runnable examples and how to infer JTD.
 ```go
 schema := NewInferrer(WithoutHints()).
     Infer("my-string").
-    IntoSchema(WithoutHints())
+    IntoSchema()
 // {
 //   "type": "string"
 // }
@@ -31,7 +31,7 @@ rows := []string{
     `{"name":"Joe", "age": 52, "something_optional": true, "something_nullable": 1.1}`,
     `{"name":"Jane", "age": 48, "something_nullable": null}`,
 }
-schema := InferStrings(rows, WithoutHints()).IntoSchema(WithoutHints())
+schema := InferStrings(rows, WithoutHints()).IntoSchema()
 // {
 //   "properties": {
 //     "age": {
