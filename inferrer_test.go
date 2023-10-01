@@ -5,6 +5,7 @@ import (
 
 	jtd "github.com/jsontypedef/json-typedef-go"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestJTDInfer(t *testing.T) {
@@ -48,6 +49,17 @@ func TestJTDInferrerWithEnumHints(t *testing.T) {
 		},
 	}
 	gotSchema := InferStrings(rows, hints).IntoSchema(hints)
+
+	// We check that we got the same elements in our enum first and then we
+	// delete it since the order is unreliable due to being a map.
+	require.ElementsMatch(
+		t,
+		expectedSchema.Properties["address"].Properties["city"].Enum,
+		gotSchema.Properties["address"].Properties["city"].Enum,
+	)
+
+	delete(expectedSchema.Properties, "address")
+	delete(gotSchema.Properties, "address")
 
 	assert.EqualValues(t, expectedSchema, gotSchema)
 }
