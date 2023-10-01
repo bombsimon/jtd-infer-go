@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 
-	"github.com/bombsimon/jtdinfer"
+	"github.com/bombsimon/jtd-infer-go"
 )
 
 func main() {
