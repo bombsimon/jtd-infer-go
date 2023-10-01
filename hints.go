@@ -9,15 +9,6 @@ type Hints struct {
 	Discriminator  HintSet
 }
 
-func New(defaultNumType NumType, enums, values, discriminator HintSet) Hints {
-	return Hints{
-		DefaultNumType: defaultNumType,
-		Enums:          enums,
-		Values:         values,
-		Discriminator:  discriminator,
-	}
-}
-
 func (h Hints) SubHints(key string) Hints {
 	return Hints{
 		DefaultNumType: h.DefaultNumType,
@@ -43,10 +34,15 @@ type HintSet struct {
 	Values [][]string
 }
 
-func NewHintSet(values [][]string) HintSet {
+func NewHintSet() HintSet {
 	return HintSet{
-		Values: values,
+		Values: [][]string{},
 	}
+}
+
+func (h HintSet) Add(v []string) HintSet {
+	h.Values = append(h.Values, v)
+	return h
 }
 
 func (h HintSet) SubHints(key string) HintSet {

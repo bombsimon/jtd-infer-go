@@ -276,7 +276,7 @@ func (i *InferredSchema) Infer(value any, hints Hints) *InferredSchema {
 	if m, ok := value.(map[string]any); ok && i.SchemaType == SchemaTypeValues {
 		subInfer := i.Values
 		for k, v := range m {
-			subInfer = NewInferredSchema().Infer(v, hints.SubHints(k))
+			subInfer = subInfer.Infer(v, hints.SubHints(k))
 		}
 
 		return &InferredSchema{
@@ -314,7 +314,7 @@ func (i *InferredSchema) Infer(value any, hints Hints) *InferredSchema {
 }
 
 // IntoSchema will convert an `InferredSchema` to a final `Schema`.
-func (i *InferredSchema) IntoSchema() Schema {
+func (i *InferredSchema) IntoSchema(hints Hints) Schema {
 	switch i.SchemaType {
 	case SchemaTypeUnknown, SchemaTypeAny:
 		return Schema{}
@@ -323,7 +323,7 @@ func (i *InferredSchema) IntoSchema() Schema {
 		return Schema{Type: jtd.TypeBoolean}
 	case SchemaTypeNumber:
 		return Schema{
-			Type: i.Number.IntoType(NumTypeUint8),
+			Type: i.Number.IntoType(hints.DefaultNumType),
 		}
 	case SchemaTypeString:
 		return Schema{Type: jtd.TypeString}
@@ -337,7 +337,7 @@ func (i *InferredSchema) IntoSchema() Schema {
 
 		return Schema{Enum: enum}
 	case SchemaTypeArray:
-		elements := i.Array.IntoSchema()
+		elements := i.Array.IntoSchema(hints)
 		return Schema{Elements: &elements}
 	case SchemaTypeProperties:
 		var (
@@ -349,7 +349,7 @@ func (i *InferredSchema) IntoSchema() Schema {
 			required = make(map[string]Schema, len(i.Properties.Required))
 
 			for k, v := range i.Properties.Required {
-				required[k] = v.IntoSchema()
+				required[k] = v.IntoSchema(hints)
 			}
 		}
 
@@ -357,7 +357,7 @@ func (i *InferredSchema) IntoSchema() Schema {
 			optional = make(map[string]Schema, len(i.Properties.Optional))
 
 			for k, v := range i.Properties.Optional {
-				optional[k] = v.IntoSchema()
+				optional[k] = v.IntoSchema(hints)
 			}
 		}
 
@@ -366,12 +366,12 @@ func (i *InferredSchema) IntoSchema() Schema {
 			OptionalProperties: optional,
 		}
 	case SchemaTypeValues:
-		values := i.Values.IntoSchema()
+		values := i.Values.IntoSchema(hints)
 		return Schema{Values: &values}
 	case SchemaTypeDiscriminator:
 		mappings := map[string]Schema{}
 		for k, v := range i.Discriminator.Mapping {
-			mappings[k] = v.IntoSchema()
+			mappings[k] = v.IntoSchema(hints)
 		}
 
 		return Schema{
@@ -379,7 +379,7 @@ func (i *InferredSchema) IntoSchema() Schema {
 			Mapping:       mappings,
 		}
 	case SchemaTypeNullable:
-		schema := i.Nullable.IntoSchema()
+		schema := i.Nullable.IntoSchema(hints)
 		schema.Nullable = true
 
 		return schema

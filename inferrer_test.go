@@ -1,25 +1,15 @@
 package jtdinfer
 
 import (
-	"encoding/json"
 	"testing"
 
 	jtd "github.com/jsontypedef/json-typedef-go"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestJTDInfer(t *testing.T) {
 	rows := []string{
 		`{"name": "Joe", "age": 42, "hobbies": ["code", "animals"]}`,
-	}
-
-	inferrer := NewInferrer(Hints{})
-
-	for _, row := range rows {
-		rowAsJSON := make(map[string]any, 0)
-		require.NoError(t, json.Unmarshal([]byte(row), &rowAsJSON))
-		inferrer = inferrer.Infer(rowAsJSON)
 	}
 
 	expectedSchema := Schema{
@@ -29,32 +19,21 @@ func TestJTDInfer(t *testing.T) {
 			"hobbies": {Elements: &Schema{Type: jtd.TypeString}},
 		},
 	}
-	gotSchema := inferrer.IntoSchema()
+	gotSchema := InferStrings(rows, Hints{}).IntoSchema(Hints{})
 
 	assert.EqualValues(t, expectedSchema, gotSchema)
 }
 
-func TestJTDInferrerWithHints(t *testing.T) {
+func TestJTDInferrerWithEnumHints(t *testing.T) {
 	hints := Hints{
-		Enums: HintSet{
-			Values: [][]string{
-				{"name"},
-				{"address", "city"},
-			},
-		},
+		Enums: NewHintSet().
+			Add([]string{"name"}).
+			Add([]string{"address", "city"}),
 	}
 
 	rows := []string{
 		`{"address": {"city": "Stockholm"}, "name": "Joe", "age": 42}`,
 		`{"address": {"city": "Umeå"}, "name": "Labero", "age": 42}`,
-	}
-
-	inferrer := NewInferrer(hints)
-
-	for _, row := range rows {
-		rowAsJSON := make(map[string]any, 0)
-		require.NoError(t, json.Unmarshal([]byte(row), &rowAsJSON))
-		inferrer = inferrer.Infer(rowAsJSON)
 	}
 
 	expectedSchema := Schema{
@@ -68,30 +47,40 @@ func TestJTDInferrerWithHints(t *testing.T) {
 			},
 		},
 	}
-	gotSchema := inferrer.IntoSchema()
+	gotSchema := InferStrings(rows, hints).IntoSchema(hints)
+
+	assert.EqualValues(t, expectedSchema, gotSchema)
+}
+
+func TestJTDInferWithValuesHints(t *testing.T) {
+	hints := Hints{
+		Values: NewHintSet().Add([]string{}),
+	}
+
+	rows := []string{
+		`{"x": [1, 2, 3], "y": [4, 5, 6], "z": [7, 8, 9]}`,
+		`{"x": [1, 2, 3], "y": [4, 5, -600], "z": [7, 8, 9]}`,
+	}
+
+	expectedSchema := Schema{
+		Values: &Schema{
+			Elements: &Schema{
+				Type: jtd.TypeInt16,
+			},
+		},
+	}
+	gotSchema := InferStrings(rows, hints).IntoSchema(hints)
 
 	assert.EqualValues(t, expectedSchema, gotSchema)
 }
 
 func TestJTDInferWithDiscriminatorHints(t *testing.T) {
 	hints := Hints{
-		Discriminator: HintSet{
-			Values: [][]string{
-				{"-", "type"},
-			},
-		},
+		Discriminator: NewHintSet().Add([]string{"-", "type"}),
 	}
 
 	rows := []string{
 		`[{"type": "s", "value": "foo"},{"type": "n", "value": 3.14}]`,
-	}
-
-	inferrer := NewInferrer(hints)
-
-	for _, row := range rows {
-		rowAsJSON := make([]any, 0)
-		require.NoError(t, json.Unmarshal([]byte(row), &rowAsJSON))
-		inferrer = inferrer.Infer(rowAsJSON)
 	}
 
 	expectedSchema := Schema{
@@ -111,7 +100,7 @@ func TestJTDInferWithDiscriminatorHints(t *testing.T) {
 			},
 		},
 	}
-	gotSchema := inferrer.IntoSchema()
+	gotSchema := InferStrings(rows, hints).IntoSchema(hints)
 
 	assert.EqualValues(t, expectedSchema, gotSchema)
 }
