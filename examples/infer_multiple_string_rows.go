@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 
-	"github.com/bombsimon/jtd-infer-go"
+	jtdinfer "github.com/bombsimon/jtd-infer-go"
 )
 
 func main() {
@@ -12,7 +12,7 @@ func main() {
 		`{"name":"Jane", "age": 48, "something_nullable": null}`,
 	}
 	schema := jtdinfer.
-		InferStrings(rows, jtdinfer.WithoutHints()).
+		InferStrings(rows, jtdinfer.NewHints()).
 		IntoSchema()
 
 	j, _ := json.MarshalIndent(schema, "", "  ")

@@ -8,11 +8,11 @@ import (
 // hints used when inferring.
 type Inferrer struct {
 	Inference *InferredSchema
-	Hints     Hints
+	Hints     *Hints
 }
 
 // NewInferrer will create a new inferrer with a default `InferredSchema`.
-func NewInferrer(hints Hints) *Inferrer {
+func NewInferrer(hints *Hints) *Inferrer {
 	return &Inferrer{
 		Inference: NewInferredSchema(),
 		Hints:     hints,
@@ -39,7 +39,7 @@ func (i *Inferrer) IntoSchema() Schema {
 //
 // If you need to infer simple values like strings or integers they can be
 // passed directly to `Infer`.
-func InferStrings(rows []string, hints Hints) *Inferrer {
+func InferStrings(rows []string, hints *Hints) *Inferrer {
 	inferrer := NewInferrer(hints)
 
 	for _, row := range rows {

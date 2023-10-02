@@ -20,13 +20,13 @@ func TestJTDInfer(t *testing.T) {
 			"hobbies": {Elements: &Schema{Type: jtd.TypeString}},
 		},
 	}
-	gotSchema := InferStrings(rows, WithoutHints()).IntoSchema()
+	gotSchema := InferStrings(rows, NewHints()).IntoSchema()
 
 	assert.EqualValues(t, expectedSchema, gotSchema)
 }
 
 func TestJTDInferrerWithEnumHints(t *testing.T) {
-	hints := Hints{
+	hints := &Hints{
 		Enums: NewHintSet().
 			Add([]string{"name"}).
 			Add([]string{"address", "city"}),
@@ -74,7 +74,7 @@ func TestJTDInferrerWithEnumHints(t *testing.T) {
 }
 
 func TestJTDInferWithValuesHints(t *testing.T) {
-	hints := Hints{
+	hints := &Hints{
 		Values: NewHintSet().Add([]string{}),
 	}
 
@@ -96,7 +96,7 @@ func TestJTDInferWithValuesHints(t *testing.T) {
 }
 
 func TestJTDInferWithDiscriminatorHints(t *testing.T) {
-	hints := Hints{
+	hints := &Hints{
 		Discriminator: NewHintSet().Add([]string{"-", "type"}),
 	}
 

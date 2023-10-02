@@ -3,12 +3,12 @@ package main
 import (
 	"encoding/json"
 
-	"github.com/bombsimon/jtd-infer-go"
+	jtdinfer "github.com/bombsimon/jtd-infer-go"
 )
 
 func main() {
 	schema := jtdinfer.
-		NewInferrer(jtdinfer.WithoutHints()).
+		NewInferrer(jtdinfer.NewHints()).
 		Infer("my-string").
 		IntoSchema()
 

@@ -64,7 +64,9 @@ func NewInferredSchema() *InferredSchema {
 // https://github.com/jsontypedef/json-typedef-infer/blob/master/src/inferred_schema.rs.
 // Since we don't have enums of this kind in Go we're using a struct with
 // pointers to a schema instead of wrapping the enums.
-func (i *InferredSchema) Infer(value any, hints Hints) *InferredSchema {
+func (i *InferredSchema) Infer(value any, hints *Hints) *InferredSchema {
+	hints = ensureHints(hints)
+
 	if value == nil {
 		return &InferredSchema{
 			SchemaType: SchemaTypeNullable,
@@ -314,7 +316,7 @@ func (i *InferredSchema) Infer(value any, hints Hints) *InferredSchema {
 }
 
 // IntoSchema will convert an `InferredSchema` to a final `Schema`.
-func (i *InferredSchema) IntoSchema(hints Hints) Schema {
+func (i *InferredSchema) IntoSchema(hints *Hints) Schema {
 	switch i.SchemaType {
 	case SchemaTypeUnknown, SchemaTypeAny:
 		return Schema{}
@@ -386,4 +388,24 @@ func (i *InferredSchema) IntoSchema(hints Hints) Schema {
 	}
 
 	return Schema{}
+}
+
+func ensureHints(hints *Hints) *Hints {
+	if hints == nil {
+		return NewHints()
+	}
+
+	if hints.Enums == nil {
+		hints.Enums = NewHintSet()
+	}
+
+	if hints.Values == nil {
+		hints.Values = NewHintSet()
+	}
+
+	if hints.Discriminator == nil {
+		hints.Discriminator = NewHintSet()
+	}
+
+	return hints
 }
