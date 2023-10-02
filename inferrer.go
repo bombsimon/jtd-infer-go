@@ -2,6 +2,7 @@ package jtdinfer
 
 import (
 	"encoding/json"
+	"strconv"
 )
 
 // Inferrer represents the `InferredSchema` with its state combined with the
@@ -32,27 +33,63 @@ func (i *Inferrer) IntoSchema() Schema {
 	return i.Inference.IntoSchema(i.Hints)
 }
 
-// InferStrings accepts a slice of strings and will convert them to either a
-// `map[string]any` or []any` and run inference on all the rows. If any of the
-// rows are not valid JSON object or list, the inference up to that point is
-// returned.
-//
-// If you need to infer simple values like strings or integers they can be
-// passed directly to `Infer`.
+// InferStrings accepts a slice of strings and will try to JSON unmarshal each
+// row to the type that the first row looks like. If an error occurs the
+// inferrer will return with the state it had when the error occurred.
+// If you already have the type of your data such as a slice of numbers or a map
+// of strings you can pass them directly to `Infer`. This is just a convenience
+// method if all you got is strings.
 func InferStrings(rows []string, hints *Hints) *Inferrer {
 	inferrer := NewInferrer(hints)
+	if len(rows) == 0 {
+		return inferrer
+	}
+
+	var (
+		firstRow   = rows[0]
+		getToInfer func() any
+	)
+
+	switch {
+	case isBool(firstRow):
+		getToInfer = func() any { return false }
+	case isObject(firstRow):
+		getToInfer = func() any { return make(map[string]any) }
+	case isArray(firstRow):
+		getToInfer = func() any { return make([]any, 0) }
+	case isNumber(firstRow):
+		getToInfer = func() any { return 0.0 }
+	default:
+		getToInfer = func() any { return "" }
+	}
 
 	for _, row := range rows {
-		var toInfer any = make(map[string]any, 0)
+		toInfer := getToInfer()
 		if err := json.Unmarshal([]byte(row), &toInfer); err != nil {
-			toInfer = make([]any, 0)
-			if err := json.Unmarshal([]byte(row), &toInfer); err != nil {
-				return inferrer
-			}
+			return inferrer
 		}
 
 		inferrer = inferrer.Infer(toInfer)
 	}
 
 	return inferrer
+}
+
+func isBool(value string) bool {
+	return value == "true" || value == "false"
+}
+
+func isObject(value string) bool {
+	var m map[string]any
+	return json.Unmarshal([]byte(value), &m) == nil
+}
+
+func isArray(value string) bool {
+	var a []any
+	return json.Unmarshal([]byte(value), &a) == nil
+}
+
+func isNumber(value string) bool {
+	_, err := strconv.ParseFloat(value, 64)
+	return err == nil
 }

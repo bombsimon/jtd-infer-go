@@ -1,12 +1,136 @@
 package jtdinfer
 
 import (
+	"fmt"
+	"math"
+	"strconv"
 	"testing"
+	"time"
 
 	jtd "github.com/jsontypedef/json-typedef-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestInferString(t *testing.T) {
+	cases := []struct {
+		description    string
+		values         []string
+		expectedSchema Schema
+	}{
+		{
+			description: "boolean true value",
+			values:      []string{"true"},
+			expectedSchema: Schema{
+				Type: jtd.TypeBoolean,
+			},
+		},
+		{
+			description: "boolean false value",
+			values:      []string{"false"},
+			expectedSchema: Schema{
+				Type: jtd.TypeBoolean,
+			},
+		},
+		{
+			description: "object",
+			values:      []string{`{"name":"Joe"}`},
+			expectedSchema: Schema{
+				Properties: map[string]Schema{
+					"name": {
+						Type: jtd.TypeString,
+					},
+				},
+			},
+		},
+		{
+			description: "array",
+			values:      []string{`[1, 2, 3]`},
+			expectedSchema: Schema{
+				Elements: &Schema{
+					Type: jtd.TypeUint8,
+				},
+			},
+		},
+		{
+			description: "unsigned integer",
+			values:      []string{"1"},
+			expectedSchema: Schema{
+				Type: jtd.TypeUint8,
+			},
+		},
+		{
+			description: "signed integer",
+			values:      []string{"-1"},
+			expectedSchema: Schema{
+				Type: jtd.TypeInt8,
+			},
+		},
+		{
+			description: "signed max integer",
+			values:      []string{strconv.Itoa(math.MinInt32)},
+			expectedSchema: Schema{
+				Type: jtd.TypeInt32,
+			},
+		},
+		{
+			description: "float without fraction",
+			values:      []string{"1.0"},
+			expectedSchema: Schema{
+				Type: jtd.TypeUint8,
+			},
+		},
+		{
+			description: "positive float",
+			values:      []string{"1.1"},
+			expectedSchema: Schema{
+				Type: jtd.TypeFloat64,
+			},
+		},
+		{
+			description: "negative float",
+			values:      []string{"-1.1"},
+			expectedSchema: Schema{
+				Type: jtd.TypeFloat64,
+			},
+		},
+		{
+			description: "string",
+			values:      []string{`"string"`},
+			expectedSchema: Schema{
+				Type: jtd.TypeString,
+			},
+		},
+		{
+			description: "number in string is still string",
+			values:      []string{`"2.2"`},
+			expectedSchema: Schema{
+				Type: jtd.TypeString,
+			},
+		},
+		{
+			description: "timestamp",
+			values:      []string{fmt.Sprintf(`"%s"`, time.Now().Format(time.RFC3339))},
+			expectedSchema: Schema{
+				Type: jtd.TypeTimestamp,
+			},
+		},
+		{
+			description: "null",
+			values:      []string{"null"},
+			expectedSchema: Schema{
+				Nullable: true,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			gotSchema := InferStrings(tc.values, NewHints()).IntoSchema()
+			assert.EqualValues(t, tc.expectedSchema, gotSchema)
+		})
+	}
+}
 
 func TestJTDInfer(t *testing.T) {
 	rows := []string{
