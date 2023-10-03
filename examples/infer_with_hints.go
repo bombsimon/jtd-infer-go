@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 
-	jtdinfer "github.com/bombsimon/jtd-infer-go"
+	"github.com/bombsimon/jtd-infer-go"
 )
 
 func main() {
@@ -23,7 +23,7 @@ func main() {
 			"discriminator":[{"type":"s", "value":"foo"},{"type":"n", "value":3.14}]
 		}`,
 	}
-	hints := &jtdinfer.Hints{
+	hints := jtdinfer.Hints{
 		DefaultNumType: jtdinfer.NumTypeUint32,
 		Enums:          jtdinfer.NewHintSet().Add([]string{"work", "department"}),
 		Values:         jtdinfer.NewHintSet().Add([]string{"values"}),

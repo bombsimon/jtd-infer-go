@@ -8,11 +8,11 @@ import (
 // hints used when inferring.
 type Inferrer struct {
 	Inference *InferredSchema
-	Hints     *Hints
+	Hints     Hints
 }
 
 // NewInferrer will create a new inferrer with a default `InferredSchema`.
-func NewInferrer(hints *Hints) *Inferrer {
+func NewInferrer(hints Hints) *Inferrer {
 	return &Inferrer{
 		Inference: NewInferredSchema(),
 		Hints:     hints,
@@ -37,7 +37,7 @@ func (i *Inferrer) IntoSchema() Schema {
 // the error occurred. If you already have the type of your data such as a slice
 // of numbers or a map of strings you can pass them directly to `Infer`. This is
 // just a convenience method if all you got is strings.
-func InferStrings(rows []string, hints *Hints) *Inferrer {
+func InferStrings(rows []string, hints Hints) *Inferrer {
 	inferrer := NewInferrer(hints)
 	if len(rows) == 0 {
 		return inferrer
