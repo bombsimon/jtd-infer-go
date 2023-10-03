@@ -126,7 +126,7 @@ func TestInferString(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			gotSchema := InferStrings(tc.values, NewHints()).IntoSchema()
+			gotSchema := InferStrings(tc.values, WithoutHints()).IntoSchema()
 			assert.EqualValues(t, tc.expectedSchema, gotSchema)
 		})
 	}
@@ -252,7 +252,7 @@ func TestJTDInferWithDiscriminatorHints(t *testing.T) {
 
 func BenchmarkInferOneRowNoMissingHints(b *testing.B) {
 	wors := generateRows(1)
-	emptyHints := NewHints()
+	emptyHints := WithoutHints()
 
 	for n := 0; n < b.N; n++ {
 		InferStrings(wors, emptyHints)
@@ -261,7 +261,7 @@ func BenchmarkInferOneRowNoMissingHints(b *testing.B) {
 
 func BenchmarkInferThousandRowsNoMissingHints(b *testing.B) {
 	rows := generateRows(1000)
-	emptyHints := NewHints()
+	emptyHints := WithoutHints()
 
 	for n := 0; n < b.N; n++ {
 		InferStrings(rows, emptyHints)
@@ -270,15 +270,19 @@ func BenchmarkInferThousandRowsNoMissingHints(b *testing.B) {
 
 func BenchmarkInferOneRowMissingHints(b *testing.B) {
 	rows := generateRows(1)
+	hints := Hints{}
+
 	for n := 0; n < b.N; n++ {
-		InferStrings(rows, nil)
+		InferStrings(rows, hints)
 	}
 }
 
 func BenchmarkInferThousandRowsMissingHints(b *testing.B) {
 	rows := generateRows(1000)
+	hints := Hints{}
+
 	for n := 0; n < b.N; n++ {
-		InferStrings(rows, nil)
+		InferStrings(rows, hints)
 	}
 }
 
