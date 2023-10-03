@@ -251,11 +251,11 @@ func TestJTDInferWithDiscriminatorHints(t *testing.T) {
 }
 
 func BenchmarkInferOneRowNoMissingHints(b *testing.B) {
-	wors := generateRows(1)
+	rows := generateRows(1)
 	emptyHints := WithoutHints()
 
 	for n := 0; n < b.N; n++ {
-		InferStrings(wors, emptyHints)
+		InferStrings(rows, emptyHints)
 	}
 }
 
@@ -265,24 +265,6 @@ func BenchmarkInferThousandRowsNoMissingHints(b *testing.B) {
 
 	for n := 0; n < b.N; n++ {
 		InferStrings(rows, emptyHints)
-	}
-}
-
-func BenchmarkInferOneRowMissingHints(b *testing.B) {
-	rows := generateRows(1)
-	hints := Hints{}
-
-	for n := 0; n < b.N; n++ {
-		InferStrings(rows, hints)
-	}
-}
-
-func BenchmarkInferThousandRowsMissingHints(b *testing.B) {
-	rows := generateRows(1000)
-	hints := Hints{}
-
-	for n := 0; n < b.N; n++ {
-		InferStrings(rows, hints)
 	}
 }
 
