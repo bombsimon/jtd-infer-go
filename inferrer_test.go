@@ -249,3 +249,46 @@ func TestJTDInferWithDiscriminatorHints(t *testing.T) {
 
 	assert.EqualValues(t, expectedSchema, gotSchema)
 }
+
+func BenchmarkInferOneRowNoMissingHints(b *testing.B) {
+	wors := generateRows(1)
+	emptyHints := NewHints()
+
+	for n := 0; n < b.N; n++ {
+		InferStrings(wors, emptyHints)
+	}
+}
+
+func BenchmarkInferThousandRowsNoMissingHints(b *testing.B) {
+	rows := generateRows(1000)
+	emptyHints := NewHints()
+
+	for n := 0; n < b.N; n++ {
+		InferStrings(rows, emptyHints)
+	}
+}
+
+func BenchmarkInferOneRowMissingHints(b *testing.B) {
+	rows := generateRows(1)
+	for n := 0; n < b.N; n++ {
+		InferStrings(rows, nil)
+	}
+}
+
+func BenchmarkInferThousandRowsMissingHints(b *testing.B) {
+	rows := generateRows(1000)
+	for n := 0; n < b.N; n++ {
+		InferStrings(rows, nil)
+	}
+}
+
+func generateRows(n int) []string {
+	row := `{"name":"bench", "speed":100.2}`
+	rows := []string{}
+
+	for i := 0; i < n; i++ {
+		rows = append(rows, row)
+	}
+
+	return rows
+}
