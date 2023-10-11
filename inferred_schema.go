@@ -75,7 +75,7 @@ func (i *InferredSchema) Infer(value any, hints Hints) *InferredSchema {
 	if i.SchemaType == SchemaTypeNullable {
 		return &InferredSchema{
 			SchemaType: SchemaTypeNullable,
-			Nullable:   i,
+			Nullable:   i.Nullable.Infer(value, hints),
 		}
 	}
 
@@ -258,7 +258,6 @@ func (i *InferredSchema) Infer(value any, hints Hints) *InferredSchema {
 			if subInfer, ok := i.Properties.Required[k]; ok {
 				i.Properties.Required[k] = subInfer.Infer(v, hints.SubHints(k))
 			} else if subInfer, ok := i.Properties.Optional[k]; ok {
-				i.Properties.Optional = ensureMap(i.Properties.Optional)
 				i.Properties.Optional[k] = subInfer.Infer(v, hints.SubHints(k))
 			} else {
 				i.Properties.Optional = ensureMap(i.Properties.Optional)

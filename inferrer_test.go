@@ -44,6 +44,18 @@ func TestInferString(t *testing.T) {
 			},
 		},
 		{
+			description: "object first is null",
+			values:      []string{`{"name":null}`, `{"name":"Joe"}`},
+			expectedSchema: Schema{
+				Properties: map[string]Schema{
+					"name": {
+						Type:     jtd.TypeString,
+						Nullable: true,
+					},
+				},
+			},
+		},
+		{
 			description: "array",
 			values:      []string{`[1, 2, 3]`},
 			expectedSchema: Schema{
