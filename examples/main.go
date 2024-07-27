@@ -2,11 +2,43 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 
-	"github.com/bombsimon/jtd-infer-go"
+	jtdinfer "github.com/bombsimon/jtd-infer-go"
 )
 
 func main() {
+	inferSimpleValue()
+	inferMultipleStringRows()
+	inferWithHints()
+}
+
+func inferSimpleValue() {
+	schema := jtdinfer.
+		NewInferrer(jtdinfer.WithoutHints()).
+		Infer("my-string").
+		IntoSchema()
+
+	j, _ := json.MarshalIndent(schema, "", "  ")
+	fmt.Println(string(j))
+	fmt.Println()
+}
+
+func inferMultipleStringRows() {
+	rows := []string{
+		`{"name":"Joe", "age": 52, "something_optional": true, "something_nullable": 1.1}`,
+		`{"name":"Jane", "age": 48, "something_nullable": null}`,
+	}
+	schema := jtdinfer.
+		InferStrings(rows, jtdinfer.WithoutHints()).
+		IntoSchema()
+
+	j, _ := json.MarshalIndent(schema, "", "  ")
+	fmt.Println(string(j))
+	fmt.Println()
+}
+
+func inferWithHints() {
 	rows := []string{
 		`{
 			"name":"Joe",
@@ -32,5 +64,6 @@ func main() {
 
 	schema := jtdinfer.InferStrings(rows, hints).IntoSchema()
 	j, _ := json.MarshalIndent(schema, "", "  ")
-	print(string(j))
+	fmt.Println(string(j))
+	fmt.Println()
 }
