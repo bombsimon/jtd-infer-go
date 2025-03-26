@@ -12,6 +12,49 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestInfer(t *testing.T) {
+	for _, tc := range []struct {
+		value          any
+		expectedSchema Schema
+	}{
+		{
+			value:          "52",
+			expectedSchema: Schema{Type: jtd.TypeString},
+		},
+		{
+			value:          52,
+			expectedSchema: Schema{Type: jtd.TypeUint8},
+		},
+		{
+			value:          nil,
+			expectedSchema: Schema{Nullable: true},
+		},
+		{
+			value: map[string]any{
+				"name": "Joe",
+				"age":  52,
+			},
+			expectedSchema: Schema{
+				Properties: map[string]Schema{
+					"name": {Type: jtd.TypeString},
+					"age":  {Type: jtd.TypeUint8},
+				},
+			},
+		},
+		{
+			value: []int{1, 3, 5},
+			expectedSchema: Schema{
+				Elements: &Schema{Type: jtd.TypeUint8},
+			},
+		},
+	} {
+		t.Run(fmt.Sprintf("infer_%T", tc.value), func(t *testing.T) {
+			gotSchema := NewInferrer(WithoutHints()).Infer(tc.value).IntoSchema()
+			assert.EqualValues(t, tc.expectedSchema, gotSchema)
+		})
+	}
+}
+
 func TestInferString(t *testing.T) {
 	cases := []struct {
 		description    string
@@ -52,6 +95,19 @@ func TestInferString(t *testing.T) {
 						Type:     jtd.TypeString,
 						Nullable: true,
 					},
+				},
+			},
+		},
+		{
+			description: "object with array",
+			values: []string{
+				`{"name": "Joe", "age": 42, "hobbies": ["code", "animals"]}`,
+			},
+			expectedSchema: Schema{
+				Properties: map[string]Schema{
+					"name":    {Type: jtd.TypeString},
+					"age":     {Type: jtd.TypeUint8},
+					"hobbies": {Elements: &Schema{Type: jtd.TypeString}},
 				},
 			},
 		},
@@ -144,24 +200,7 @@ func TestInferString(t *testing.T) {
 	}
 }
 
-func TestJTDInfer(t *testing.T) {
-	rows := []string{
-		`{"name": "Joe", "age": 42, "hobbies": ["code", "animals"]}`,
-	}
-
-	expectedSchema := Schema{
-		Properties: map[string]Schema{
-			"name":    {Type: jtd.TypeString},
-			"age":     {Type: jtd.TypeUint8},
-			"hobbies": {Elements: &Schema{Type: jtd.TypeString}},
-		},
-	}
-	gotSchema := InferStrings(rows, WithoutHints()).IntoSchema()
-
-	assert.EqualValues(t, expectedSchema, gotSchema)
-}
-
-func TestJTDInferrerWithEnumHints(t *testing.T) {
+func TestInferrerWithEnumHints(t *testing.T) {
 	hints := Hints{
 		Enums: NewHintSet().
 			Add([]string{"name"}).
@@ -209,7 +248,7 @@ func TestJTDInferrerWithEnumHints(t *testing.T) {
 	assert.EqualValues(t, expectedSchema, gotSchema)
 }
 
-func TestJTDInferWithValuesHints(t *testing.T) {
+func TestInferWithValuesHints(t *testing.T) {
 	hints := Hints{
 		Values: NewHintSet().Add([]string{}),
 	}
@@ -231,7 +270,7 @@ func TestJTDInferWithValuesHints(t *testing.T) {
 	assert.EqualValues(t, expectedSchema, gotSchema)
 }
 
-func TestJTDInferWithDiscriminatorHints(t *testing.T) {
+func TestInferWithDiscriminatorHints(t *testing.T) {
 	hints := Hints{
 		Discriminator: NewHintSet().Add([]string{"-", "type"}),
 	}
@@ -277,6 +316,14 @@ func BenchmarkInferThousandRowsNoMissingHints(b *testing.B) {
 
 	for n := 0; n < b.N; n++ {
 		InferStrings(rows, emptyHints)
+	}
+}
+
+func BenchmarkInferSimpleString(b *testing.B) {
+	inferrer := NewInferrer(WithoutHints())
+
+	for n := 0; n < b.N; n++ {
+		inferrer.Infer("string")
 	}
 }
 
