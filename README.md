@@ -12,7 +12,9 @@ kind of hints see [`json-typedef-infer`][jtd-infer].
 
 ## Usage
 
-See [examples] directory for runnable examples and how to infer JTD.
+See [examples] directory for runnable examples and how to infer JTD. If you want
+to infer a primitive Go type such as a `string` or `map[string]any`, you can use
+`Infer`:
 
 ```go
 schema := NewInferrer(WithoutHints()).
@@ -23,8 +25,29 @@ schema := NewInferrer(WithoutHints()).
 // }
 ```
 
-If you have multiple rows of objects or lists as strings you can pass them to
-the shorthand function `InferStrings`.
+```go
+schema := NewInferrer(WithoutHints()).
+    Infer(map[string]any{
+        "age":  52,
+        "name": "Joe",
+    }).
+    IntoSchema()
+// {
+//   "properties": {
+//     "age": {
+//       "type": "uint8"
+//     },
+//     "name": {
+//       "type": "string"
+//     }
+//   }
+// }
+```
+
+If you have one or more rows of JSON objects or lists as strings you can pass
+them to the shorthand function `InferStrings`. This will create an `Inferrer`
+and call `Infer` repeatedly on each row after deserializing it to a Go map. This
+is the recommended way to infer the schema even if you just have a single line.
 
 ```go
 rows := []string{

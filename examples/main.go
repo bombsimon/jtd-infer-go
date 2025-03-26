@@ -10,6 +10,8 @@ import (
 func main() {
 	inferSimpleValue()
 	inferMultipleStringRows()
+	inferMap()
+	inferManualUnmarshal()
 	inferWithHints()
 }
 
@@ -24,6 +26,20 @@ func inferSimpleValue() {
 	fmt.Println()
 }
 
+func inferMap() {
+	schema := jtdinfer.
+		NewInferrer(jtdinfer.WithoutHints()).
+		Infer(map[string]any{
+			"age":  52,
+			"name": "Joe",
+		}).
+		IntoSchema()
+
+	j, _ := json.MarshalIndent(schema, "", "  ")
+	fmt.Println(string(j))
+	fmt.Println()
+}
+
 func inferMultipleStringRows() {
 	rows := []string{
 		`{"name":"Joe", "age": 52, "something_optional": true, "something_nullable": 1.1}`,
@@ -31,6 +47,20 @@ func inferMultipleStringRows() {
 	}
 	schema := jtdinfer.
 		InferStrings(rows, jtdinfer.WithoutHints()).
+		IntoSchema()
+
+	j, _ := json.MarshalIndent(schema, "", "  ")
+	fmt.Println(string(j))
+	fmt.Println()
+}
+
+func inferManualUnmarshal() {
+	var m map[string]any
+	json.Unmarshal([]byte(`{"name": "Jon", "age": 52}`), &m)
+
+	schema := jtdinfer.
+		NewInferrer(jtdinfer.WithoutHints()).
+		Infer(m).
 		IntoSchema()
 
 	j, _ := json.MarshalIndent(schema, "", "  ")
