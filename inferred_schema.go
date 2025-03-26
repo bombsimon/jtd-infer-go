@@ -83,9 +83,7 @@ func (i *InferredSchema) Infer(value any, hints Hints) *InferredSchema {
 		return &InferredSchema{SchemaType: SchemaTypeBoolean}
 	}
 
-	// In Go all numbers from unmarshalling JSON will be represented as float64
-	// so this is the only type we need.
-	if v, ok := value.(float64); ok && i.SchemaType == SchemaTypeUnknown {
+	if v, ok := anyAsNumber(value); ok && i.SchemaType == SchemaTypeUnknown {
 		return &InferredSchema{
 			SchemaType: SchemaTypeNumber,
 			Number:     NewNumber().Infer(v),
@@ -175,7 +173,7 @@ func (i *InferredSchema) Infer(value any, hints Hints) *InferredSchema {
 		return &InferredSchema{SchemaType: SchemaTypeAny}
 	}
 
-	if v, ok := value.(float64); ok && i.SchemaType == SchemaTypeNumber {
+	if v, ok := anyAsNumber(value); ok && i.SchemaType == SchemaTypeNumber {
 		return &InferredSchema{
 			SchemaType: SchemaTypeNumber,
 			Number:     i.Number.Infer(v),
