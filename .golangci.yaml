@@ -1,11 +1,12 @@
 ---
 run:
-  deadline: 1m
+  timeout: 1m
   issues-exit-code: 1
   tests: true
 
 output:
-  format: colored-line-number
+  formats:
+    - format: colored-line-number
   print-issued-lines: false
 
 linters-settings:
@@ -17,7 +18,8 @@ issues:
   max-issues-per-linter: 0
   max-same-issues: 0
   exclude-rules:
-    - linters: revive
+    - linters:
+        - revive
       text: "^package-comments:"
 
 linters:
@@ -32,12 +34,12 @@ linters:
     - dupl
     - dupword
     - durationcheck
+    - err113
     - errcheck
     - errchkjson
     - errname
     - errorlint
     - exhaustive
-    - exportloopref
     - forbidigo
     - forcetypeassert
     - gochecknoglobals
@@ -46,11 +48,9 @@ linters:
     - gocritic
     - godot
     - godox
-    - goerr113
     - gofmt
     - gofumpt
     - goimports
-    - gomnd
     - gomoddirectives
     - gomodguard
     - goprintffuncname
@@ -68,6 +68,7 @@ linters:
     - makezero
     - mirror
     - misspell
+    - mnd
     - musttag
     - nakedret
     - nilerr

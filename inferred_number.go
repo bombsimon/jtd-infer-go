@@ -130,7 +130,7 @@ func (i *InferredNumber) ContainedBy(nt NumType) bool {
 		return false
 	}
 
-	min, max := nt.AsRange()
+	minValue, maxValue := nt.AsRange()
 
-	return min <= i.Min && max >= i.Max
+	return minValue <= i.Min && maxValue >= i.Max
 }
