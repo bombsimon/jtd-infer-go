@@ -132,7 +132,7 @@ The CLI tool reads from STDIN so something like this is the intended usage.
   }
 }
 
-› jtd-infer-go < cmd/jtd-infer-go/example.json
+› jtd-infer-go < example.json
 {
   "properties": {
     "age": {
