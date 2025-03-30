@@ -85,7 +85,7 @@ achieve this there's a CLI tool bundled here as well.
 ### Installation
 
 ```sh
-go install github.com/bombsimon/jtd-infer-go/cmd/jtd-infer-go
+go install github.com/bombsimon/jtd-infer-go/cmd/jtd-infer-go@latest
 ```
 
 ### CLI usage
