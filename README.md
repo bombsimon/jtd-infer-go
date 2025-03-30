@@ -76,5 +76,83 @@ schema := InferStrings(rows, WithoutHints()).IntoSchema()
 // }
 ```
 
+## CLI tool
+
+There's not really a need for yet another CLI tool since the original
+[jtd-infer] project contains one, but since it was just a couple of lines to
+achieve this there's a CLI tool bundled here as well.
+
+### Installation
+
+```sh
+go install github.com/bombsimon/jtd-infer-go/cmd/jtd-infer-go
+```
+
+### CLI usage
+
+The CLI tool reads from STDIN so something like this is the intended usage.
+
+```sh
+› echo '{"foo": "bar", "biz": 1}' | jtd-infer-go
+{
+  "properties": {
+    "biz": {
+      "type": "uint8"
+    },
+    "foo": {
+      "type": "string"
+    }
+  }
+}
+```
+
+```sh
+› cat example.json
+{"name":"Joe", "age": 52, "something_optional": true, "something_nullable": 1.1}
+{"name":"Jane", "age": 48, "something_nullable": null}
+
+› cat example.json | jtd-infer-go
+{
+  "properties": {
+    "age": {
+      "type": "uint8"
+    },
+    "name": {
+      "type": "string"
+    },
+    "something_nullable": {
+      "nullable": true,
+      "type": "float64"
+    }
+  },
+  "optionalProperties": {
+    "something_optional": {
+      "type": "boolean"
+    }
+  }
+}
+
+› jtd-infer-go < cmd/jtd-infer-go/example.json
+{
+  "properties": {
+    "age": {
+      "type": "uint8"
+    },
+    "name": {
+      "type": "string"
+    },
+    "something_nullable": {
+      "nullable": true,
+      "type": "float64"
+    }
+  },
+  "optionalProperties": {
+    "something_optional": {
+      "type": "boolean"
+    }
+  }
+}
+```
+
 [jtd-infer]: https://github.com/jsontypedef/json-typedef-infer/
 [examples]: examples
